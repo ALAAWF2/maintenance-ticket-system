@@ -1,10 +1,10 @@
 {
   "files": {
-    "main.js": "/maintenance-ticket-system/static/js/main.0ac0d3ad.js",
+    "main.js": "/maintenance-ticket-system/static/js/main.20050dfd.js",
     "index.html": "/maintenance-ticket-system/index.html",
-    "main.0ac0d3ad.js.map": "/maintenance-ticket-system/static/js/main.0ac0d3ad.js.map"
+    "main.20050dfd.js.map": "/maintenance-ticket-system/static/js/main.20050dfd.js.map"
   },
   "entrypoints": [
-    "static/js/main.0ac0d3ad.js"
+    "static/js/main.20050dfd.js"
   ]
 }
