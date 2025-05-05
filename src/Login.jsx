@@ -9,26 +9,37 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-      const docRef = doc(db, "users", user.uid);
-      const docSnap = await getDoc(docRef);
+const handleLogin = async (e) => {
+  e.preventDefault();
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
 
-      if (docSnap.exists()) {
-        const outlet = docSnap.data().outlet;
-        localStorage.setItem("outlet", outlet);
-        navigate("/dashboard");
-      } else {
-        alert("❌ لا يوجد معرض مرتبط بهذا المستخدم");
-      }
-    } catch (error) {
-      alert("فشل تسجيل الدخول ❌");
-      console.error(error);
+    const isAdmin = email === "admin@orangebedbath.com"; // ← عدّل الإيميل إذا مختلف
+    localStorage.setItem("role", isAdmin ? "admin" : "outlet");
+
+    if (isAdmin) {
+      navigate("/admin");
+      return;
     }
-  };
+
+    // ✅ المعارض فقط يمرون هنا
+    const docRef = doc(db, "users", user.uid);
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+      const outlet = docSnap.data().outlet;
+      localStorage.setItem("outlet", outlet || "");
+      navigate("/dashboard");
+    } else {
+      alert("❌ لا يوجد معرض مرتبط بهذا المستخدم");
+    }
+  } catch (error) {
+    alert("فشل تسجيل الدخول ❌");
+    console.error(error);
+  }
+};
+
 
   return (
     <div style={{ padding: "2rem", maxWidth: "400px", margin: "auto" }}>

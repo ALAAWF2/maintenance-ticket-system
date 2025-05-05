@@ -10,20 +10,37 @@ import {
 import { db } from "./firebase";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
+import { Navigate, useNavigate } from "react-router-dom";
 
 export default function AdminDashboard() {
   const [tickets, setTickets] = useState([]);
   const [statusFilter, setStatusFilter] = useState("all");
   const [outletFilter, setOutletFilter] = useState("all");
   const [sortDirection, setSortDirection] = useState("desc");
+  const [redirect, setRedirect] = useState(false);
+  const navigate = useNavigate();
+
+  const role = localStorage.getItem("role");
 
   useEffect(() => {
+    if (role !== "admin") {
+      setRedirect(true);
+      return;
+    }
+
     const unsubscribe = onSnapshot(collection(db, "tickets"), (snapshot) => {
       const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
       setTickets(data);
     });
     return () => unsubscribe();
-  }, []);
+  }, [role]);
+
+  if (redirect) return <Navigate to="/" />;
+
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate("/");
+  };
 
   const updateStatus = async (id, newStatus) => {
     const updates = { status: newStatus };
@@ -95,7 +112,10 @@ export default function AdminDashboard() {
 
   return (
     <div style={{ padding: "2rem", maxWidth: "1200px", margin: "auto", background: "#fffaf3" }}>
-      <h2 style={{ textAlign: "center", color: "#f97316" }}>لوحة إدارة التذاكر</h2>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <h2 style={{ color: "#f97316" }}>لوحة إدارة التذاكر</h2>
+        <button onClick={handleLogout} style={btnLogout}>🚪 تسجيل الخروج</button>
+      </div>
 
       <div style={{ margin: "1rem 0", display: "flex", gap: "1.5rem", flexWrap: "wrap" }}>
         <span>📌 الإجمالي: {tickets.length}</span>
@@ -120,7 +140,6 @@ export default function AdminDashboard() {
         </select>
 
         <button onClick={exportToExcel} style={btnExport}>📥 تصدير Excel</button>
-
         <button
           onClick={() => setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"))}
           style={{ ...btnExport, backgroundColor: "#3b82f6" }}
@@ -202,4 +221,13 @@ const btnExport = {
   borderRadius: "5px",
   fontWeight: "bold",
   cursor: "pointer",
+};
+const btnLogout = {
+  backgroundColor: "#ef4444",
+  color: "white",
+  padding: "0.5rem 1rem",
+  border: "none",
+  borderRadius: "5px",
+  cursor: "pointer",
+  fontWeight: "bold",
 };

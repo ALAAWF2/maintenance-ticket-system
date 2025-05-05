@@ -10,20 +10,32 @@ import {
   query,
   where,
 } from "firebase/firestore";
+import { Navigate, useNavigate } from "react-router-dom";
 
 export default function OutletDashboard() {
   const [form, setForm] = useState({ issueType: "", description: "" });
   const [tickets, setTickets] = useState([]);
+  const [redirect, setRedirect] = useState(false);
+
   const outlet = localStorage.getItem("outlet");
+  const role = localStorage.getItem("role");
+  const navigate = useNavigate();
 
   useEffect(() => {
+    if (!outlet || role === "admin") {
+      setRedirect(true);
+      return;
+    }
+
     const q = query(collection(db, "tickets"), where("outlet", "==", outlet));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
       setTickets(data);
     });
     return () => unsubscribe();
-  }, [outlet]);
+  }, [outlet, role]);
+
+  if (redirect) return <Navigate to="/" />;
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -61,13 +73,18 @@ export default function OutletDashboard() {
     const year = date.getFullYear();
     return `${day}/${month}/${year}`;
   };
-  
+
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate("/");
+  };
 
   return (
     <div style={{ padding: "2rem", maxWidth: "1000px", margin: "auto" }}>
-      <h2 style={{ textAlign: "center", color: "#f97316", marginBottom: "0.5rem" }}>
-        تذاكر الصيانة الخاصة بمعرضك
-      </h2>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <h2 style={{ color: "#f97316", marginBottom: "0.5rem" }}>تذاكر الصيانة الخاصة بمعرضك</h2>
+        <button onClick={handleLogout} style={btnLogout}>🚪 تسجيل الخروج</button>
+      </div>
       <p style={{ textAlign: "center", color: "#444", marginBottom: "2rem" }}>
         المعرض الحالي: <strong>{outlet}</strong>
       </p>
@@ -179,4 +196,13 @@ const btnBlue = {
   border: "none",
   borderRadius: "4px",
   cursor: "pointer",
+};
+const btnLogout = {
+  backgroundColor: "#ef4444",
+  color: "white",
+  padding: "0.5rem 1rem",
+  border: "none",
+  borderRadius: "5px",
+  cursor: "pointer",
+  fontWeight: "bold",
 };
